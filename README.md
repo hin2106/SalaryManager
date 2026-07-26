@@ -230,10 +230,37 @@ không cộng lại ở mức 100%.
 
 Mặc định:
 
-- Bảo hiểm người lao động: `10,5% × lương cơ bản`.
+- Tổng bảo hiểm người lao động: `10,5% × lương cơ bản`, gồm:
+  - BHXH: `8%`.
+  - BHYT: `1,5%`.
+  - BHTN: `1%`.
 - Giảm trừ bản thân kỳ tính thuế 2026: `15.500.000 đồng/tháng`.
 - Giảm trừ mỗi người phụ thuộc: `6.200.000 đồng/tháng`.
 - Thuế TNCN dùng biểu lũy tiến 5 bậc của kỳ tính thuế 2026.
+
+Thu nhập tính thuế được xác định theo công thức:
+
+```text
+Thu nhập tính thuế
+= Tổng thu nhập
+- Bảo hiểm bắt buộc
+- 15.500.000
+- (6.200.000 × số người phụ thuộc)
+```
+
+Biểu thuế lũy tiến:
+
+| Bậc | Phần thu nhập tính thuế/tháng | Thuế suất |
+|---:|---|---:|
+| 1 | Đến 10.000.000 | 5% |
+| 2 | Trên 10.000.000 đến 30.000.000 | 10% |
+| 3 | Trên 30.000.000 đến 60.000.000 | 20% |
+| 4 | Trên 60.000.000 đến 100.000.000 | 30% |
+| 5 | Trên 100.000.000 | 35% |
+
+Thuế được tính theo từng phần, không lấy toàn bộ thu nhập nhân với mức thuế cao
+nhất. Mục **Chi tiết cách tính** trong ứng dụng hiển thị bậc thuế thực tế đã áp
+dụng.
 
 Các kết quả trong ứng dụng phục vụ lập bảng lương nội bộ. Trước khi kê khai
 chính thức, doanh nghiệp cần đối chiếu hợp đồng lao động, tiền lương đóng bảo

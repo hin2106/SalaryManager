@@ -104,7 +104,7 @@ public final class SalaryEngine {
         BigDecimal tax=tax(taxable),manual=sum(inputs.deductions);
         BigDecimal total=insurance.add(tax).add(manual),net=gross.subtract(total);
         String formula = formula(dayHourly,nightHourly,shiftHours,shiftPays,shiftAllowance,inputs,
-                regularPay,otPay,otherIncome,gross,insurance,tax,manual,total,net);
+                regularPay,otPay,otherIncome,gross,insurance,taxable,tax,manual,total,net);
         return new SalarySummary(normal,sunday,leave,noOt,regularHours,weekdayOt,sundayOt,holidayOt,
                 dayHourly,regularPay,otPay,otherIncome,gross,insurance,tax,manual,total,net,formula);
     }
@@ -144,7 +144,8 @@ public final class SalaryEngine {
     private static String formula(BigDecimal dayHourly,BigDecimal nightHourly,Map<ShiftType,Double> shiftHours,
             Map<ShiftType,BigDecimal> shiftPays,BigDecimal allowance,SalaryInputs in,
             BigDecimal regularPay,BigDecimal premiumPay,BigDecimal other,BigDecimal gross,
-            BigDecimal insurance,BigDecimal tax,BigDecimal manual,BigDecimal total,BigDecimal net){
+            BigDecimal insurance,BigDecimal taxable,BigDecimal tax,BigDecimal manual,
+            BigDecimal total,BigDecimal net){
         StringBuilder b=new StringBuilder("ĐƠN GIÁ\nCa ngày: ").append(money(dayHourly))
                 .append(" / giờ\nCa đêm: ").append(money(nightHourly))
                 .append(" / giờ\n\nTIỀN CÔNG THEO CA");
@@ -155,9 +156,30 @@ public final class SalaryEngine {
         in.fixedIncome.forEach((k,v)->{if(v!=null&&v.signum()!=0)b.append('\n').append(k).append(": ").append(money(v));});
         in.variableIncome.forEach((k,v)->{if(v!=null&&v.signum()!=0)b.append('\n').append(k).append(": ").append(money(v));});
         b.append("\n\nTỔNG THU: ").append(money(gross)).append("\n\nKHOẢN TRỪ")
-          .append("\nBảo hiểm: ").append(money(insurance)).append("\nThuế TNCN: ").append(money(tax))
+          .append("\nBảo hiểm bắt buộc: ").append(money(insurance)).append(" (10,5% lương cơ bản)")
+          .append("\n  • BHXH: 8%")
+          .append("\n  • BHYT: 1,5%")
+          .append("\n  • BHTN: 1%")
+          .append("\n\nThu nhập tính thuế: ").append(money(taxable))
+          .append("\nThuế TNCN: ").append(money(tax))
+          .append(taxDetail(taxable))
           .append("\nTạm ứng / phạt / khác: ").append(money(manual)).append("\nTỔNG TRỪ: ").append(money(total))
           .append("\n\nTHỰC NHẬN: ").append(money(net));return b.toString();
+    }
+    private static String taxDetail(BigDecimal taxable){
+        if(taxable.signum()<=0)return "\n  • Không phát sinh thuế";
+        long[] limits={10_000_000,30_000_000,60_000_000,100_000_000};
+        String[] labels={"5% đến 10 triệu","10% từ trên 10–30 triệu",
+                "20% từ trên 30–60 triệu","30% từ trên 60–100 triệu","35% phần trên 100 triệu"};
+        BigDecimal remaining=taxable,previous=BigDecimal.ZERO;
+        StringBuilder detail=new StringBuilder();
+        for(int i=0;i<labels.length&&remaining.signum()>0;i++){
+            BigDecimal limit=i<limits.length?BigDecimal.valueOf(limits[i]):taxable;
+            BigDecimal band=remaining.min(limit.subtract(previous)).max(BigDecimal.ZERO);
+            if(band.signum()>0)detail.append("\n  • ").append(labels[i]).append(": ").append(money(band));
+            remaining=remaining.subtract(band);previous=limit;
+        }
+        return detail.toString();
     }
     private static String money(BigDecimal v){return String.format(Locale.forLanguageTag("vi-VN"),"%,.0f ₫",v);}
     private static String num(double v){return v==Math.rint(v)?String.format("%.0f",v):String.format("%.1f",v);}

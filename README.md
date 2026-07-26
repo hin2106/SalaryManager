@@ -1,4 +1,4 @@
-# Lương Việt
+# SalaryManager
 
 Ứng dụng desktop quản lý nhân viên, chấm công và tính lương bằng JavaFX.
 
